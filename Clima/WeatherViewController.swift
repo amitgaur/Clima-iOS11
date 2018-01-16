@@ -8,13 +8,15 @@
 
 import UIKit
 import CoreLocation
+import Alamofire
+import SwiftyJSON
 
 
 class WeatherViewController: UIViewController, CLLocationManagerDelegate {
     
     //Constants
     let WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
-    let APP_ID = "d295c29c01a41ee3c9b40553268ef71"
+    let APP_ID = "24419c81c1193f6bac4aa2e549ea4364"
     
     
     //TODO: Declare instance variables here
@@ -62,6 +64,22 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
         for (key, value) in params{
             print ("Key : \(key), val : \(value)")
         }
+        Alamofire.request(WEATHER_URL, parameters: params)
+            .responseJSON{
+                response in
+                if response.result.isSuccess {
+                    let weatherJSON = JSON(response.result.value!)
+                    print (weatherJSON)
+                    self.cityLabel.text = weatherJSON["name"].string
+                    
+                    let temp = weatherJSON["main"]["temp"].double!
+                    self.temperatureLabel.text =  (String(format : "%.0f°", temp))
+                    
+                } else {
+                    print("\(response.result.error!)")
+                    self.cityLabel.text = "Connection Issue"
+                }
+        }
     }
     
     
@@ -104,7 +122,7 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
             print ("Lat: \(location.coordinate.latitude) , Long : \(location.coordinate.longitude)")
             cityLabel.text = "Lat: \(location.coordinate.latitude) , Long : \(location.coordinate.longitude)"
             //locationManager.stopUpdatingLocation()
-            let params  = ["lat" : String ( location.coordinate.latitude), "lon" : String(location.coordinate.longitude), "app_id" : APP_ID]
+            let params  = ["lat" : String ( location.coordinate.latitude), "lon" : String(location.coordinate.longitude), "appid" : APP_ID, "units" : "metric"]
             getWeatherData(params : params)
         }
         else {
